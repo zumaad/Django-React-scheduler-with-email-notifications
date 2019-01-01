@@ -3,7 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "daypicker": "^1.0.1",
+    "moment": "latest",
+    "moment-timezone": "^0.5.23",
+    "rc-time-picker": "^3.5.0",
     "react": "^16.7.0",
+    "react-day-picker": "^7.2.4",
     "react-dom": "^16.7.0",
     "react-scripts": "2.1.2"
   },
