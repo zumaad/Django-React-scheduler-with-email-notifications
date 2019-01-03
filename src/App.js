@@ -425,9 +425,9 @@ class Item extends React.Component {
             if (fullDeadlineDate.isBefore(currentTime)) {
                 timeLeft = <b style={{color: 'red'}}>deadline passed!</b>
                 //if the deadline is after current time, set up the timer to display time left.
-            } else {
-                timeLeft = this.state.timer
-                setInterval(() => this.showTimeLeft(this.props.timezone), 1000)
+            // } else {
+            //     timeLeft = this.state.timer
+            //     setInterval(() => this.showTimeLeft(this.props.timezone), 1000)
             }
 
             //user has not entered in a date or time.
