@@ -119,6 +119,7 @@ class App extends React.Component {
     deleteTask(nameAndCategory) {
         let category = nameAndCategory.category;
         let taskName = nameAndCategory.name;
+        console.log(category,taskName)
         let copiedCategories = this.cloneObject(this.state.categories);
         delete copiedCategories[category][taskName];
 
@@ -173,12 +174,9 @@ class App extends React.Component {
 
 
     render() {
-
-
+        console.log(this.state.categories.projects)
         return (
-
             <div>
-
                 <div className="jumbotron"><h1>Scheduler</h1>
                     <label>
                         Pick your timezone
@@ -280,7 +278,8 @@ class Category extends React.Component {
                               deleteTaskFunc={this.props.deleteTaskFunc}
                               items={this.props.items}
                               updateItemFunc={this.props.updateItemFunc}
-                              timezone={this.props.timezone}/>
+                              timezone={this.props.timezone}
+                              collapsed = {this.state.collapsed}  />
                 </div>
             )
         } else {
@@ -319,6 +318,7 @@ class ItemList extends React.Component {
                               task={this.props.items[key]}
                               updateItemFunc={this.props.updateItemFunc}
                               timezone={this.props.timezone}
+                              collapsed = {this.props.collapsed}
                         />
                     </div>)}
             </div>
@@ -350,7 +350,7 @@ class Item extends React.Component {
         this.trackProgress = this.trackProgress.bind(this);
         this.trackDeadlineHour = this.trackDeadlineHour.bind(this);
         this.combineDate = this.combineDate.bind(this);
-        this.showTimeLeft = this.showTimeLeft.bind(this);
+
 
 
     }
@@ -372,7 +372,7 @@ class Item extends React.Component {
     }
 
     trackDeadline(day) {
-        this.setState({deadline: day})
+        this.setState({deadline: day.toString()})
         this.setState({hasDeadline: true})
     }
 
@@ -382,8 +382,7 @@ class Item extends React.Component {
     }
 
     trackDeadlineHour(hour) {
-        console.log(hour.toString())
-        this.setState({deadlineHour: hour})
+        this.setState({deadlineHour: hour.toString()})
         this.setState({hasDeadlineHour: true})
     }
 
@@ -395,39 +394,31 @@ class Item extends React.Component {
         return newDeadlineDate
     }
 
-    showTimeLeft(timezone) {
-        let currentTime = moment.tz(timezone)
-        let fullDeadlineDate = this.combineDate(this.state.deadline, this.state.deadlineHour)
-        let difference = moment.duration(fullDeadlineDate.diff(currentTime))
-        this.setState({
-            timer: difference.days() + 'd ' + difference.hours() + 'h ' + difference.minutes() + 'm '
-                + difference.seconds() + 's'
-        })
-
-    }
-
-
     render() {
         let deadline = ''
         let timeLeft = ''
         let deadlineHourPlaceHolder = 'pick an hour'
         let deadlineDatePlaceholder = 'pick a date'
 
+
         //if the user has entered a date and a time for the task
         if (this.state.hasDeadline && this.state.hasDeadlineHour) {
-            deadline = this.state.deadline.toLocaleDateString() + ' ' + this.state.deadlineHour.format(format)
-            deadlineDatePlaceholder = this.state.deadline.toLocaleDateString()
-            deadlineHourPlaceHolder = this.state.deadlineHour.format(format)
+            deadline = new Date(this.state.deadline).toLocaleDateString() + ' ' + moment(this.state.deadlineHour).format(format)
+            deadlineDatePlaceholder = new Date(this.state.deadline).toLocaleDateString()
+            deadlineHourPlaceHolder = moment(this.state.deadlineHour).format(format)
 
             let currentTime = moment.tz(this.props.timezone)
-            let fullDeadlineDate = this.combineDate(this.state.deadline, this.state.deadlineHour)
+            let fullDeadlineDate = this.combineDate(new Date(this.state.deadline), moment(this.state.deadlineHour))
+            // timeLeft = <TimeLeftTimer
+            //     timezone = {this.props.timezone}
+            //     deadlineDate = {fullDeadlineDate}
+            // />
+
+            console.log(fullDeadlineDate.isBefore(currentTime))
 
             if (fullDeadlineDate.isBefore(currentTime)) {
                 timeLeft = <b style={{color: 'red'}}>deadline passed!</b>
                 //if the deadline is after current time, set up the timer to display time left.
-            } else {
-                timeLeft = this.state.timer
-                setInterval(() => this.showTimeLeft(this.props.timezone), 1000)
             }
 
             //user has not entered in a date or time.
@@ -452,7 +443,8 @@ class Item extends React.Component {
                     </h5>
                     <ul>
                         <li> deadline:{deadline}</li>
-                        <li> time left: {timeLeft}  </li>
+                        <li> current time: {moment.tz(this.props.timezone).hours()}  </li>
+                        <li> time left comp : {timeLeft} </li>
                         <li>
                             progress:
                             <div className="progress">
@@ -500,6 +492,53 @@ class Item extends React.Component {
         }
 
     }
+}
+
+class TimeLeftTimer extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            timer:moment().format(),
+            interval:''
+        }
+
+        this.timer = this.timer.bind(this);
+    }
+
+    timer() {
+        let currentTime = moment.tz(this.props.timezone)
+        console.log('current time',currentTime.hours())
+        console.log('current time minutes',currentTime.minutes())
+        console.log('deadline hour',this.props.deadlineDate.hours())
+        console.log('deadline hour minutes',this.props.deadlineDate.minutes())
+        let difference = moment.duration(this.props.deadlineDate.diff(currentTime))
+        console.log('difference',difference.asMilliseconds())
+
+        this.setState({
+            timer: difference.days() + 'd ' + difference.hours() + 'h ' + difference.minutes() + 'm '
+                + difference.seconds() + 's'
+        })
+    }
+
+
+
+    componentDidMount() {
+        this.setState({interval:setInterval(this.timer,1000)})
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.state.interval)
+    }
+
+    render() {
+        return (
+            <div>
+                {this.state.timer}
+            </div>
+        )
+
+    }
+
 }
 
 
