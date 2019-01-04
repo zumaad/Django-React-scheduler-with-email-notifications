@@ -30,7 +30,7 @@
           crossorigin="anonymous">
     <title>Scheduler</title>
   </head>
-  <body>
+  <body class="main" style="margin: 0;height: 100%;">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <style>
       .btn-sm {
@@ -39,6 +39,7 @@
       }
       .jumbotron {
         text-align: center;
+        border: #14A76C solid;
       }
 
       .align {
@@ -56,6 +57,55 @@
         border-radius: 10px;
         text-align: left;
       }
+
+      .smalltext {
+        font-size: x-small;
+        color: #FF652F;
+      }
+
+      .itemboxheader{
+        text-align: center;
+      }
+
+      .btn-xs {
+        height: 17px;
+        width: 70px;
+        font-size: 10px;
+        padding: 0px;
+        margin-top: 0px;
+
+      }
+
+      .main {
+        background: #272727;
+      }
+
+      .text {
+        color: #14A76C;
+      }
+
+      input,select,.progress {
+        background-color: #f2f2d2;
+      }
+
+      .progress-bar {
+        background-color: #FF652F;
+      }
+
+      .jumbo-text {
+        font-size: 4em;
+        font-weight: bold;
+      }
+
+      .jumbo-line {
+        background: #14A76C;
+        height: 10px;
+      }
+
+      /*.left-bottom {*/
+        /*display: table-cell;*/
+        /*vertical-align: bottom;*/
+      /*}*/
     </style>
     <div id="root"></div>
 
