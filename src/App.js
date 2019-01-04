@@ -15,20 +15,16 @@ class App extends React.Component {
             categories: {
                 'projects': {
                     'react scheduler': {
-                        hasDeadline: false,
-                        hasDeadlineHour: false,
                         deadline: '',
-                        deadlineHour: '',
-                        progress: 0,
-                        priority: ''
+                        progress: 10,
+                        priority: '',
+                        key:1
                     },
                     'something idk': {
-                        hasDeadline: false,
-                        hasDeadlineHour: false,
                         deadline: '',
-                        deadlineHour: '',
-                        progress: 0,
-                        priority: ''
+                        progress: 5,
+                        priority: '',
+                        key:2
                     }
                 },
 
@@ -36,8 +32,10 @@ class App extends React.Component {
             },
             potentialCategory: '',
             potentialTask: '',
-            timezone: 'America/New_York',
-
+            timezone:'America/New_York',
+            keyCount:3,
+            timezoneMapping: {'America/Chicago':'Central','America/Denver':'Mountain','America/Los_Angeles':'Pacific',
+                'America/New_York':'Eastern'}
         }
         this.trackCategoryInput = this.trackCategoryInput.bind(this);
         this.addCategory = this.addCategory.bind(this);
@@ -52,16 +50,27 @@ class App extends React.Component {
 
     }
 
+    // cloneObject(obj) {
+    //     let clone = {};
+    //     for (let i in obj) {
+    //         if (obj[i] != null && typeof (obj[i]) == "object" && !(obj[i].constructor.name == 'Date' || obj[i].constructor.name == 'Moment'))
+    //             clone[i] = this.cloneObject(obj[i]);
+    //         else if (obj[i].constructor.name == 'Date') {
+    //             clone[i] = new Date(obj[i].getTime())
+    //         } else if (obj[i].constructor.name == 'Moment') {
+    //             clone[i] = obj[i].clone()
+    //         } else
+    //             clone[i] = obj[i];
+    //     }
+    //     return clone;
+    // }
+
     cloneObject(obj) {
         let clone = {};
         for (let i in obj) {
-            if (obj[i] != null && typeof (obj[i]) == "object" && !(obj[i].constructor.name == 'Date' || obj[i].constructor.name == 'Moment'))
+            if (obj[i] != null && typeof (obj[i]) == "object")
                 clone[i] = this.cloneObject(obj[i]);
-            else if (obj[i].constructor.name == 'Date') {
-                clone[i] = new Date(obj[i].getTime())
-            } else if (obj[i].constructor.name == 'Moment') {
-                clone[i] = obj[i].clone()
-            } else
+            else
                 clone[i] = obj[i];
         }
         return clone;
@@ -95,6 +104,10 @@ class App extends React.Component {
             alert("you need to name your task")
             return
         }
+        this.setState(state => ({
+            keyCount: state.keyCount + 1
+        }))
+
         let categoryToAddTo = e.target.value
         let copiedState = this.cloneObject(this.state);
         copiedState.categories[categoryToAddTo][potentialTask] = {
@@ -103,7 +116,8 @@ class App extends React.Component {
             deadline: '',
             progress: 0,
             priority: '',
-            deadlineHour: ''
+            deadlineHour: '',
+            key:this.state.keyCount
         };
         this.setState(state => ({
             categories: copiedState.categories
@@ -119,7 +133,7 @@ class App extends React.Component {
     deleteTask(nameAndCategory) {
         let category = nameAndCategory.category;
         let taskName = nameAndCategory.name;
-        console.log(category,taskName)
+
         let copiedCategories = this.cloneObject(this.state.categories);
         delete copiedCategories[category][taskName];
 
@@ -149,6 +163,7 @@ class App extends React.Component {
         let newDeadlineHour = itemState.deadlineHour;
         let hasDeadline = itemState.hasDeadline;
         let hasDeadlineHour = itemState.hasDeadlineHour;
+        let key = itemState.id;
 
 
         copiedCategories[itemCategory][itemName] = {
@@ -157,7 +172,8 @@ class App extends React.Component {
             deadline: newDeadline,
             progress: newProgress,
             priority: 'NA',
-            deadlineHour: newDeadlineHour
+            deadlineHour: newDeadlineHour,
+            key:key
         }
 
         this.setState(state => ({
@@ -174,27 +190,33 @@ class App extends React.Component {
 
 
     render() {
-        console.log(this.state.categories.projects)
         return (
-            <div>
-                <div className="jumbotron"><h1>Scheduler</h1>
+            <div className='main'>
+                <div className="jumbotron text main"><p className="jumbo-text"> Make a Schedule!</p>
+                    <div className='jumbo-line'> </div>
+                    <br></br><br></br>
                     <label>
-                        Pick your timezone
-                        <select value={this.state.value} onChange={this.timezoneListener}>
+
+                        Pick your timezone: <select value={this.state.value} onChange={this.timezoneListener}>
                             <option value='America/New_York'> Eastern</option>
                             <option value='America/Chicago'> Central</option>
                             <option value='America/Denver'> Mountain</option>
                             <option value='America/Los_Angeles'>Pacific</option>
                         </select>
                     </label>
+                    <p style={{margin:0}}><i>Times are currently based on {this.state.timezoneMapping[this.state.timezone]} time where it is {moment.tz(this.state.timezone).format("hh:mm A")}</i></p>
+                    <p className={'smalltext'}> <b>If this is not your timezone, change it above or the deadlines and time left for your deadlines will be incorrect </b></p>
+
                 </div>
 
 
-                <div className="align">
+                <div className="align text">
                     <h2>Add to your schedule</h2>
                     <input onChange={this.trackCategoryInput} value={this.state.potentialCategory}
                            placeholder="add a category" type="text"/>
                     <button onClick={this.addCategory} className="btn btn-success"> Add Category</button>
+
+
                     <hr></hr>
                     <br></br>
                     <br></br>
@@ -225,7 +247,7 @@ class CategoryList extends React.Component {
         return (
             <div className="align">
                 {Object.keys(this.props.categories).map((key) =>
-                    <div className="category">
+                    <div className="category text">
                         <Category deleteCategoryFunc={this.props.deleteCategoryFunc}
                                   addTaskFunc={this.props.addTaskFunc}
                                   trackTask={this.props.trackTask} categoryName={key}
@@ -319,6 +341,8 @@ class ItemList extends React.Component {
                               updateItemFunc={this.props.updateItemFunc}
                               timezone={this.props.timezone}
                               collapsed = {this.props.collapsed}
+                              key = {this.props.items[key].key}
+                              id = {this.props.items[key].key}
                         />
                     </div>)}
             </div>
@@ -342,24 +366,25 @@ class Item extends React.Component {
             progress: this.props.task.progress,
             deadlineHour: this.props.task.deadlineHour,
             timezone: this.props.timezone,
-            timer: moment().format()
+            timer: moment().format(),
+            id:this.props.id
+            }
 
-        }
+
+
+
         this.toggleEdit = this.toggleEdit.bind(this);
         this.trackDeadline = this.trackDeadline.bind(this);
         this.trackProgress = this.trackProgress.bind(this);
         this.trackDeadlineHour = this.trackDeadlineHour.bind(this);
         this.combineDate = this.combineDate.bind(this);
-
-
-
     }
 
 
     toggleEdit(pushChanges) {
         if (this.state.inEditingMode && this.state.hasDeadline && this.state.hasDeadlineHour) {
             this.setState({inEditingMode: false})
-        } else if (this.state.inEditingMode && (!this.state.hasDeadline || this.state.hasDeadlineHour)) {
+        } else if (this.state.inEditingMode && (!this.state.hasDeadline || !this.state.hasDeadlineHour)) {
             alert("you have to enter both a deadline date and deadline hour!")
         } else {
             this.setState({inEditingMode: true})
@@ -408,13 +433,12 @@ class Item extends React.Component {
             deadlineHourPlaceHolder = moment(this.state.deadlineHour).format(format)
 
             let currentTime = moment.tz(this.props.timezone)
-            let fullDeadlineDate = this.combineDate(new Date(this.state.deadline), moment(this.state.deadlineHour))
-            // timeLeft = <TimeLeftTimer
-            //     timezone = {this.props.timezone}
-            //     deadlineDate = {fullDeadlineDate}
-            // />
+            let fullDeadlineDate = this.combineDate(new Date(this.state.deadline), moment(this.state.deadlineHour)).tz(this.props.timezone)
 
-            console.log(fullDeadlineDate.isBefore(currentTime))
+            timeLeft = <TimeLeftTimer
+                timezone = {this.props.timezone}
+                deadlineDate = {fullDeadlineDate}
+            />
 
             if (fullDeadlineDate.isBefore(currentTime)) {
                 timeLeft = <b style={{color: 'red'}}>deadline passed!</b>
@@ -431,20 +455,22 @@ class Item extends React.Component {
         if (!this.state.inEditingMode) {
             return (
                 <div className="itembox">
-                    <h5> {this.props.taskName}
-                        <button className="btn btn-success btn-sm" onClick={() => this.toggleEdit(false)}> Edit Task
-                        </button>
-                        <button onClick={() => this.props.deleteTaskFunc({
+                    <div className="itemboxheader">
+                        <h3 style={{margin:0}}> <b>{this.props.taskName}</b></h3>
+                        <button className="btn btn-success btn-xs" onClick={() => this.toggleEdit(false)}> Edit </button>
+                        <button
+                            onClick={() => this.props.deleteTaskFunc({
                             category: this.props.category,
                             name: this.props.taskName
                         })}
-                                className="btn btn-danger btn-sm"> Delete Task
+                            className="btn btn-danger btn-xs"> Delete
                         </button>
-                    </h5>
+                    </div>
+
                     <ul>
                         <li> deadline:{deadline}</li>
-                        <li> current time: {moment.tz(this.props.timezone).hours()}  </li>
-                        <li> time left comp : {timeLeft} </li>
+                        {/*<li> current time: {moment.tz(this.props.timezone).hours()}  </li>*/}
+                        <li> time left: {timeLeft} </li>
                         <li>
                             progress:
                             <div className="progress">
@@ -506,14 +532,9 @@ class TimeLeftTimer extends React.Component {
     }
 
     timer() {
+        console.log('timer runnning')
         let currentTime = moment.tz(this.props.timezone)
-        console.log('current time',currentTime.hours())
-        console.log('current time minutes',currentTime.minutes())
-        console.log('deadline hour',this.props.deadlineDate.hours())
-        console.log('deadline hour minutes',this.props.deadlineDate.minutes())
         let difference = moment.duration(this.props.deadlineDate.diff(currentTime))
-        console.log('difference',difference.asMilliseconds())
-
         this.setState({
             timer: difference.days() + 'd ' + difference.hours() + 'h ' + difference.minutes() + 'm '
                 + difference.seconds() + 's'
