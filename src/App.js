@@ -2,11 +2,24 @@ import React, {Component} from 'react';
 import DayPickerInput from 'react-day-picker/DayPickerInput';
 import TimePicker from 'rc-time-picker';
 import 'rc-time-picker/assets/index.css';
-
 import 'react-day-picker/lib/style.css';
 import './App.css';
-
 let moment = require('moment-timezone');
+
+class HomePage extends React.Component {
+    constructor(props) {
+        super(props);
+
+    }
+
+    render() {
+        return(
+            <div>
+                <input > </input>
+            </div>)
+    }
+
+}
 
 class App extends React.Component {
     constructor(props) {
@@ -35,7 +48,10 @@ class App extends React.Component {
             timezone:'America/New_York',
             keyCount:3,
             timezoneMapping: {'America/Chicago':'Central','America/Denver':'Mountain','America/Los_Angeles':'Pacific',
-                'America/New_York':'Eastern'}
+                'America/New_York':'Eastern'},
+            name:'zumaad',
+            tasksCompleted:0,
+
         }
         this.trackCategoryInput = this.trackCategoryInput.bind(this);
         this.addCategory = this.addCategory.bind(this);
@@ -46,6 +62,7 @@ class App extends React.Component {
         this.trackTaskInput = this.trackTaskInput.bind(this);
         this.updateItem = this.updateItem.bind(this);
         this.timezoneListener = this.timezoneListener.bind(this);
+        this.markAsComplete = this.markAsComplete.bind(this);
 
 
     }
@@ -120,7 +137,8 @@ class App extends React.Component {
             key:this.state.keyCount
         };
         this.setState(state => ({
-            categories: copiedState.categories
+            categories: copiedState.categories,
+            potentialTask:''
         }))
 
 
@@ -138,7 +156,7 @@ class App extends React.Component {
         delete copiedCategories[category][taskName];
 
         this.setState(state => ({
-            categories: copiedCategories
+            categories: copiedCategories,
         }))
 
     }
@@ -188,31 +206,33 @@ class App extends React.Component {
 
     }
 
+    markAsComplete(nameAndCategory){
+        let category = nameAndCategory.category;
+        let taskName = nameAndCategory.name;
+
+        let copiedCategories = this.cloneObject(this.state.categories);
+        delete copiedCategories[category][taskName];
+
+        this.setState(state => ({
+            categories: copiedCategories,
+            tasksCompleted: this.state.tasksCompleted + 1
+        }))
+    }
 
     render() {
         return (
             <div className='main'>
-                <div className="jumbotron text main"><p className="jumbo-text"> Make a Schedule!</p>
-                    <div className='jumbo-line'> </div>
-                    <br></br><br></br>
-                    <label>
-
-                        Pick your timezone: <select value={this.state.value} onChange={this.timezoneListener}>
-                            <option value='America/New_York'> Eastern</option>
-                            <option value='America/Chicago'> Central</option>
-                            <option value='America/Denver'> Mountain</option>
-                            <option value='America/Los_Angeles'>Pacific</option>
-                        </select>
-                    </label>
-                    <p style={{margin:0}}><i>Times are currently based on {this.state.timezoneMapping[this.state.timezone]} time where it is {moment.tz(this.state.timezone).format("hh:mm A")}</i></p>
-                    <p className={'smalltext'}> <b>If this is not your timezone, change it above or the deadlines and time left for your deadlines will be incorrect </b></p>
+                <div className="jumbotron text main">
+                    <p className="jumbo-text"> Make a Schedule!</p>
+                    <p>Welcome, {this.state.name}</p>
+                    You've completed {this.state.tasksCompleted} tasks so far
 
                 </div>
 
 
                 <div className="align text">
                     <h2>Add to your schedule</h2>
-                    <input onChange={this.trackCategoryInput} value={this.state.potentialCategory}
+                    <input id="categoryInput" onChange={this.trackCategoryInput} value={this.state.potentialCategory}
                            placeholder="add a category" type="text"/>
                     <button onClick={this.addCategory} className="btn btn-success"> Add Category</button>
 
@@ -229,6 +249,8 @@ class App extends React.Component {
                               deleteCategoryFunc={this.deleteCategory}
                               updateItemFunc={this.updateItem}
                               timezone={this.state.timezone}
+                              trackingTask = {this.state.potentialTask}
+                              markAsCompleteFunc = {this.markAsComplete}
 
                 />
             </div>
@@ -255,6 +277,8 @@ class CategoryList extends React.Component {
                                   items={this.props.categories[key]}
                                   updateItemFunc={this.props.updateItemFunc}
                                   timezone={this.props.timezone}
+                                  trackingTask = {this.props.trackingTask}
+                                  markAsCompleteFunc = {this.props.markAsCompleteFunc}
                         />
                     </div>)}
             </div>)
@@ -266,7 +290,8 @@ class Category extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            collapsed: true
+            collapsed: true,
+
         }
 
         this.collapseOrExpand = this.collapseOrExpand.bind(this);
@@ -280,7 +305,7 @@ class Category extends React.Component {
         }
     }
 
-    //why cant i assign the differenc in renders to a variable and then stick that variable in the body??
+    //why cant i assign the difference in renders to a variable and then stick that variable in the body??
     render() {
         if (!this.state.collapsed) {
             return (
@@ -291,7 +316,7 @@ class Category extends React.Component {
                         </button>
                         <button onClick={this.collapseOrExpand} className="btn btn-warning btn-sm"> Collapse</button>
                     </h1>
-                    <input onChange={this.props.trackTask} placeholder="task name"/>
+                    <input onChange={this.props.trackTask} value = {this.props.trackingTask} placeholder="task name"/>
                     <button className="btn btn-success btn-sm" value={this.props.categoryName}
                             onClick={this.props.addTaskFunc}> add task
                     </button>
@@ -301,7 +326,9 @@ class Category extends React.Component {
                               items={this.props.items}
                               updateItemFunc={this.props.updateItemFunc}
                               timezone={this.props.timezone}
-                              collapsed = {this.state.collapsed}  />
+                              collapsed = {this.state.collapsed}
+                              markAsCompleteFunc = {this.props.markAsCompleteFunc}
+                              />
                 </div>
             )
         } else {
@@ -343,6 +370,8 @@ class ItemList extends React.Component {
                               collapsed = {this.props.collapsed}
                               key = {this.props.items[key].key}
                               id = {this.props.items[key].key}
+                              trackingTask = {this.props.trackingTask}
+                              markAsCompleteFunc = {this.props.markAsCompleteFunc}
                         />
                     </div>)}
             </div>
@@ -458,7 +487,7 @@ class Item extends React.Component {
                 <div className="itembox">
                     <div className="itemboxheader">
                         <h3 style={{margin:0}}> <b>{this.props.taskName}</b></h3>
-                        <button className="btn btn-success btn-xs" onClick={() => this.toggleEdit(false)}> Edit </button>
+                        <button className="btn btn-warning btn-xs" onClick={() => this.toggleEdit(false)}> Edit </button>
                         <button
                             onClick={() => this.props.deleteTaskFunc({
                             category: this.props.category,
@@ -466,12 +495,18 @@ class Item extends React.Component {
                         })}
                             className="btn btn-danger btn-xs"> Delete
                         </button>
+                        <button className="btn btn-success btn-xs2"
+                            onClick={() => this.props.markAsCompleteFunc({
+                            category: this.props.category,
+                            name: this.props.taskName})}>
+                            Mark as complete!
+                        </button>
+
                     </div>
 
                     <ul>
-                        <li> deadline:{deadline}</li>
-                        {/*<li> current time: {moment.tz(this.props.timezone).hours()}  </li>*/}
-                        <li> time left: {timeLeft} </li>
+                        <li> deadline:<span style={{color:'#FF652F'}}>{deadline}</span></li>
+                        <li> time left:<span style={{color:'#FF652F'}}> {timeLeft}</span> </li>
                         <li>
                             progress:
                             <div className="progress">
@@ -536,10 +571,18 @@ class TimeLeftTimer extends React.Component {
         console.log('timer runnning')
         let currentTime = moment.tz(this.props.timezone)
         let difference = moment.duration(this.props.deadlineDate.diff(currentTime))
-        this.setState({
-            timer: difference.days() + 'd ' + difference.hours() + 'h ' + difference.minutes() + 'm '
-                + difference.seconds() + 's'
-        })
+        if (this.props.deadlineDate.isBefore(currentTime)) {
+            this.setState({timer:<span style={{color:'red'}}>deadline passed!</span>})
+            clearInterval(this.state.interval)
+
+        }
+        else {
+            this.setState({
+                timer: difference.days() + 'd ' + difference.hours() + 'h ' + difference.minutes() + 'm '
+                    + difference.seconds() + 's'
+            })
+        }
+
     }
 
 
@@ -554,7 +597,7 @@ class TimeLeftTimer extends React.Component {
 
     render() {
         return (
-            <div>
+            <div style={{color:'#FF652F'}}>
                 {this.state.timer}
             </div>
         )
