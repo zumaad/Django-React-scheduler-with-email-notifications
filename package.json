@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "daypicker": "^1.0.1",
+    "jquery": "^3.3.1",
     "moment": "latest",
     "moment-timezone": "^0.5.23",
     "rc-time-picker": "^3.5.0",
