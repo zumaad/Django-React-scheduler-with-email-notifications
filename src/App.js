@@ -62,7 +62,6 @@ class HomePage extends React.Component {
                     </div>
                 </div>)
         } else {
-            console.log('rendering app')
             return <App username={this.state.username} password={this.state.password} schedule={this.state.schedule}/>
         }
 
@@ -94,7 +93,6 @@ class HomePage extends React.Component {
     }
 
     toggleUserSchedule() {
-        console.log(this.state.username)
         if (!this.state.username || !this.state.password) {
             this.setState({errorMessage:'You have to fill out both the password and username fields'})
         }
@@ -140,7 +138,8 @@ class App extends React.Component {
                 name: this.props.username,
                 tasksCompleted: 0,
                 hasChanged:false,
-                updateFail:false
+                updateFail:false,
+                displayUpdateSuccess:false
 
             }
         } else {
@@ -159,6 +158,7 @@ class App extends React.Component {
         this.markAsComplete = this.markAsComplete.bind(this);
         this.pushData = this.pushData.bind(this);
         this.pushDataHelper= this.pushDataHelper.bind(this);
+        this.displayUpdateSuccess = this.displayUpdateSuccess.bind(this);
 
 
     }
@@ -332,7 +332,7 @@ class App extends React.Component {
         }).then(function (response) {
             return response.json();
         }).then(data=>
-            this.setState({updateFail:false})
+            this.displayUpdateSuccess()
         ).catch(ex=> {
             this.setState({updateFail:true,
                                 hasChanged:true})
@@ -341,11 +341,23 @@ class App extends React.Component {
 
     /*
     Since setState is async, need to use push data as callback to ensure that it is called only after
-    state is actually changed.
+    state is actually changed(referring to when hasChanged is set to false).
      */
-
     pushDataHelper() {
         this.setState({hasChanged:false},() =>{this.pushData()})
+    }
+
+    /*
+    shows that the update was successful for three seconds
+     */
+    displayUpdateSuccess() {
+        if (!this.state.displayUpdateSuccess) {
+            console.log('display update func running')
+            this.setState({updateFail:false,displayUpdateSuccess:true},()=>{
+                setTimeout(()=>this.setState({displayUpdateSuccess:false}),3000)
+            })
+        }
+
 
 
     }
@@ -353,16 +365,20 @@ class App extends React.Component {
     render() {
         let hasChangedMessage = ''
         let updateFailedMessage = ''
+        let updateSuccessMessage = ''
         if (this.state.hasChanged) {
             hasChangedMessage = <p style={{color:'red'}}> Your schedule has changed since loading, make sure to save before exiting!</p>
         }
         else {
-            hasChangedMessage = <p style={{color:'yellow'}}> No changes since last save</p>
+            hasChangedMessage = <p style={{color:'yellow'}}> No changes detected since last save</p>
 
         }
         if (this.state.updateFail){
             updateFailedMessage = <p style={{color:'red'}} >Your changes weren't able to be pushed to the server, check your internet connection.</p>
 
+        }
+        if (this.state.displayUpdateSuccess) {
+            updateSuccessMessage = <p style={{color:'lawngreen'}}> Data pushed successfully to server!</p>
         }
         return (
             <div className='main'>
@@ -370,11 +386,12 @@ class App extends React.Component {
                     <p className="jumbo-text"> Make a Schedule!</p>
                     <p>Welcome, {this.state.name}</p>
                     You've completed {this.state.tasksCompleted} tasks so far
-                    <br></br>
+                    <br></br><br></br><br></br>
                     <div>
                         <button className="btn btn-success" onClick={this.pushDataHelper}> save your changes!</button>
                         {hasChangedMessage}
                         {updateFailedMessage}
+                        {updateSuccessMessage}
                     </div>
 
 
@@ -730,7 +747,7 @@ class TimeLeftTimer extends React.Component {
     }
 
     timer() {
-        console.log('timer runnning')
+        console.log('timer running')
         let currentTime = moment.tz(this.props.timezone)
         let difference = moment.duration(this.props.deadlineDate.diff(currentTime))
         if (this.props.deadlineDate.isBefore(currentTime)) {
