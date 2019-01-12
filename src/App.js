@@ -62,7 +62,8 @@ class HomePage extends React.Component {
                     </div>
                 </div>)
         } else {
-            return <App username={this.state.username} password={this.state.password} schedule={this.state.schedule}/>
+            return <App username={this.state.username} password={this.state.password} schedule=
+                {this.state.schedule}/>
         }
 
     }
@@ -231,7 +232,8 @@ class App extends React.Component {
             progress: 0,
             priority: '',
             deadlineHour: '',
-            key: this.state.keyCount
+            key: this.state.keyCount,
+            note:''
         };
         this.setState(state => ({
             categories: copiedState.categories,
@@ -278,6 +280,7 @@ class App extends React.Component {
         let hasDeadline = itemState.hasDeadline;
         let hasDeadlineHour = itemState.hasDeadlineHour;
         let key = itemState.id;
+        let itemNotes = itemState.note
 
 
         copiedCategories[itemCategory][itemName] = {
@@ -287,7 +290,8 @@ class App extends React.Component {
             progress: newProgress,
             priority: 'NA',
             deadlineHour: newDeadlineHour,
-            key: key
+            key: key,
+            note:itemNotes
         }
 
         this.setState(state => ({
@@ -564,6 +568,7 @@ const format = 'h:mm a';
 
 class Item extends React.Component {
     constructor(props) {
+        console.log('item constructor')
         super(props);
         this.state = {
             name: this.props.taskName,
@@ -576,7 +581,8 @@ class Item extends React.Component {
             deadlineHour: this.props.task.deadlineHour,
             timezone: this.props.timezone,
             timer: moment().format(),
-            id: this.props.id
+            id: this.props.id,
+            note:this.props.task.note
         }
 
 
@@ -585,6 +591,7 @@ class Item extends React.Component {
         this.trackProgress = this.trackProgress.bind(this);
         this.trackDeadlineHour = this.trackDeadlineHour.bind(this);
         this.combineDate = this.combineDate.bind(this);
+        this.trackNotes = this.trackNotes.bind(this);
     }
 
 
@@ -626,11 +633,23 @@ class Item extends React.Component {
         return newDeadlineDate
     }
 
+    trackNotes(event) {
+        this.setState({note:event.target.value})
+    }
+
     render() {
         let deadline = ''
         let timeLeft = ''
         let deadlineHourPlaceHolder = 'pick an hour'
         let deadlineDatePlaceholder = 'pick a date'
+        let notes =''
+
+        if (!this.state.note) {
+            notes = <p style={{color:'#FF652F'}} id='notes'> <b>edit to write notes.</b></p>
+        }
+        else{
+            notes = <p style={{color:'#FF652F'}} id='notes'> {this.state.note}</p>
+        }
 
 
         //if the user has entered a date and a time for the task
@@ -650,7 +669,6 @@ class Item extends React.Component {
             if (fullDeadlineDate.isBefore(currentTime)) {
                 timeLeft = <b style={{color: 'red'}}>deadline passed!</b>
                 //if the deadline is after current time, set up the timer to display time left.
-
             }
 
             //user has not entered in a date or time.
@@ -695,6 +713,7 @@ class Item extends React.Component {
                                 </div>
                             </div>
                         </li>
+                        <li>Notes:{notes} </li>
                     </ul>
                 </div>
             )
@@ -726,6 +745,7 @@ class Item extends React.Component {
                                 </div>
                             </div>
                         </li>
+                        <li> notes: <textarea value={this.state.note} onChange={this.trackNotes} className='form-control' rows='4'> </textarea> </li>
                     </ul>
                     <button className="btn btn-success btn-sm" onClick={() => this.toggleEdit(true)}> save</button>
                 </div>
