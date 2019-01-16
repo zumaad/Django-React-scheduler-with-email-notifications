@@ -23,6 +23,14 @@ function getCookie(name) {
     return cookieValue;
 };
 
+function combineDate(dateObj, hoursObj) {
+    let combinedDate = new Date(dateObj.toLocaleDateString())
+    combinedDate.setHours(hoursObj.hours())
+    combinedDate.setMinutes(hoursObj.minutes())
+    let newDeadlineDate = moment(combinedDate);
+    return newDeadlineDate
+}
+
 class HomePage extends React.Component {
     constructor(props) {
         super(props);
@@ -48,7 +56,8 @@ class HomePage extends React.Component {
                     <div className="jumbotron text main">
                         <p className='jumbo-text'> Sign in</p>
                         <div>
-                            <input onChange={this.trackUsername} value={this.state.username} placeholder='username' required='true'/>
+                            <input onChange={this.trackUsername} value={this.state.username} placeholder='username'
+                                   required='true'/>
                         </div>
                         <div>
                             <input type='password' onChange={this.trackPassword} value={this.state.password}
@@ -58,7 +67,7 @@ class HomePage extends React.Component {
                         <div>
                             <button onClick={this.toggleUserSchedule} className="btn btn-success"> Sign in!</button>
                         </div>
-                        <p style={{color:'red'}}>{this.state.errorMessage}</p>
+                        <p style={{color: 'red'}}>{this.state.errorMessage}</p>
                     </div>
                 </div>)
         } else {
@@ -95,12 +104,10 @@ class HomePage extends React.Component {
 
     toggleUserSchedule() {
         if (!this.state.username || !this.state.password) {
-            this.setState({errorMessage:'You have to fill out both the password and username fields'})
-        }
-        else {
+            this.setState({errorMessage: 'You have to fill out both the password and username fields'})
+        } else {
             this.fetchData()
         }
-
 
 
     }
@@ -138,10 +145,10 @@ class App extends React.Component {
                 },
                 name: this.props.username,
                 tasksCompleted: 0,
-                hasChanged:false,
-                updateFail:false,
-                displayUpdateSuccess:false
-
+                hasChanged: false,
+                updateFail: false,
+                displayUpdateSuccess: false,
+                notificationMap: {}
             }
         } else {
             this.state = this.props.schedule
@@ -158,8 +165,9 @@ class App extends React.Component {
         this.timezoneListener = this.timezoneListener.bind(this);
         this.markAsComplete = this.markAsComplete.bind(this);
         this.pushData = this.pushData.bind(this);
-        this.pushDataHelper= this.pushDataHelper.bind(this);
+        this.pushDataHelper = this.pushDataHelper.bind(this);
         this.displayUpdateSuccess = this.displayUpdateSuccess.bind(this);
+        this.cleanNotificationMap = this.cleanNotificationMap.bind(this);
 
 
     }
@@ -178,6 +186,8 @@ class App extends React.Component {
     //     }
     //     return clone;
     // }
+
+
 
     cloneObject(obj) {
         let clone = {};
@@ -203,7 +213,7 @@ class App extends React.Component {
 
             this.setState(state => ({
                 categories: copiedState.categories,
-                hasChanged:true
+                hasChanged: true
             }))
             this.setState({potentialCategory: ''})
         } else {
@@ -233,11 +243,13 @@ class App extends React.Component {
             priority: '',
             deadlineHour: '',
             key: this.state.keyCount,
-            note:''
+            note: '',
+            notificationDate: '',
+            notificationHour: ''
         };
         this.setState(state => ({
             categories: copiedState.categories,
-            hasChanged:true
+            hasChanged: true
             // potentialTask:''
         }))
 
@@ -247,13 +259,18 @@ class App extends React.Component {
     deleteTask(nameAndCategory) {
         let category = nameAndCategory.category;
         let taskName = nameAndCategory.name;
+        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        if (taskName in copiedNotificationMap) {
+            delete copiedNotificationMap[taskName]
+        }
 
         let copiedCategories = this.cloneObject(this.state.categories);
         delete copiedCategories[category][taskName];
 
         this.setState(state => ({
             categories: copiedCategories,
-            hasChanged:true
+            hasChanged: true,
+            notificationMap: copiedNotificationMap
         }))
 
     }
@@ -261,11 +278,19 @@ class App extends React.Component {
     deleteCategory(e) {
         let categoryName = e.target.value;
         let copiedCategories = this.cloneObject(this.state.categories);
+        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        for (let task in copiedCategories[categoryName]) {
+            if (task in copiedNotificationMap) {
+                delete copiedNotificationMap[task]
+            }
+        }
         delete copiedCategories[categoryName];
+
 
         this.setState(state => ({
             categories: copiedCategories,
-            hasChanged:true
+            hasChanged: true,
+            notificationMap: copiedNotificationMap
         }))
 
     }
@@ -281,6 +306,14 @@ class App extends React.Component {
         let hasDeadlineHour = itemState.hasDeadlineHour;
         let key = itemState.id;
         let itemNotes = itemState.note
+        let notificationDate = itemState.notificationDate;
+        let notificationHour = itemState.notificationHour;
+        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+
+
+        if (notificationDate && notificationHour) {
+            copiedNotificationMap[itemName] = {date: notificationDate, hour: notificationHour}
+        }
 
 
         copiedCategories[itemCategory][itemName] = {
@@ -291,12 +324,15 @@ class App extends React.Component {
             priority: 'NA',
             deadlineHour: newDeadlineHour,
             key: key,
-            note:itemNotes
+            note: itemNotes,
+            notificationDate: notificationDate,
+            notificationHour: notificationHour
         }
 
         this.setState(state => ({
             categories: copiedCategories,
-            hasChanged:true
+            hasChanged: true,
+            notificationMap: copiedNotificationMap
         }))
     }
 
@@ -335,12 +371,35 @@ class App extends React.Component {
             body: JSON.stringify(userData)
         }).then(function (response) {
             return response.json();
-        }).then(data=>
+        }).then(data =>
             this.displayUpdateSuccess()
-        ).catch(ex=> {
-            this.setState({updateFail:true,
-                                hasChanged:true})
+        ).catch(ex => {
+            this.setState({
+                updateFail: true,
+                hasChanged: true
+            })
         });
+    }
+
+    cleanNotificationMap() {
+        console.log("cleaning notification map")
+        console.log("b4",this.state.notificationMap)
+        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        for (let task in copiedNotificationMap) {
+            let date = copiedNotificationMap[task].date
+            let hour = copiedNotificationMap[task].hour
+            let currentTime = moment.tz(this.state.timezone)
+            let fullNotificationDate = combineDate(new Date(date), moment(hour)).tz(this.state.timezone);
+            if (fullNotificationDate.isBefore(currentTime)) {
+                console.log("deleting", task)
+                delete copiedNotificationMap[task]
+            }
+        }
+        /*
+        make sure that push data is only called after notificationmap is cleaned
+         */
+        this.setState({notificationMap: copiedNotificationMap},()=>this.pushData())
+
     }
 
     /*
@@ -348,7 +407,9 @@ class App extends React.Component {
     state is actually changed(referring to when hasChanged is set to false).
      */
     pushDataHelper() {
-        this.setState({hasChanged:false},() =>{this.pushData()})
+        this.setState({hasChanged: false}, () => {
+            this.cleanNotificationMap()
+        })
     }
 
     /*
@@ -356,33 +417,38 @@ class App extends React.Component {
      */
     displayUpdateSuccess() {
         if (!this.state.displayUpdateSuccess) {
-            console.log('display update func running')
-            this.setState({updateFail:false,displayUpdateSuccess:true},()=>{
-                setTimeout(()=>this.setState({displayUpdateSuccess:false}),3000)
+
+            this.setState({updateFail: false, displayUpdateSuccess: true}, () => {
+                setTimeout(() => this.setState({displayUpdateSuccess: false}), 3000)
             })
         }
-
 
 
     }
 
     render() {
+        console.log(this.state.categories)
+        // console.log('notifications', this.state.notificationMap)
+        // console.log('schedule',this.state.categories)
         let hasChangedMessage = ''
         let updateFailedMessage = ''
         let updateSuccessMessage = ''
         if (this.state.hasChanged) {
-            hasChangedMessage = <p style={{color:'red'}}> Your schedule has changed since loading, make sure to save before exiting!</p>
-        }
-        else {
-            hasChangedMessage = <p style={{color:'yellow'}}> No changes detected since last save</p>
+            hasChangedMessage =
+                <p style={{color: 'red'}}> Your schedule has changed since loading, make sure to save before
+                    exiting!</p>
+        } else {
+            hasChangedMessage = <p style={{color: 'yellow'}}> No changes detected since last save</p>
 
         }
-        if (this.state.updateFail){
-            updateFailedMessage = <p style={{color:'red'}} >Your changes weren't able to be pushed to the server, check your internet connection.</p>
+        if (this.state.updateFail) {
+            updateFailedMessage =
+                <p style={{color: 'red'}}>Your changes weren't able to be pushed to the server, check your internet
+                    connection.</p>
 
         }
         if (this.state.displayUpdateSuccess) {
-            updateSuccessMessage = <p style={{color:'lawngreen'}}> Data pushed successfully to server!</p>
+            updateSuccessMessage = <p style={{color: 'lawngreen'}}> Data pushed successfully to server!</p>
         }
         return (
             <div className='main'>
@@ -582,7 +648,9 @@ class Item extends React.Component {
             timezone: this.props.timezone,
             timer: moment().format(),
             id: this.props.id,
-            note:this.props.task.note
+            note: this.props.task.note,
+            notificationDate: this.props.task.notificationDate,
+            notificationHour: this.props.task.notificationHour
         }
 
 
@@ -592,14 +660,23 @@ class Item extends React.Component {
         this.trackDeadlineHour = this.trackDeadlineHour.bind(this);
         this.combineDate = this.combineDate.bind(this);
         this.trackNotes = this.trackNotes.bind(this);
+        this.trackNotificationDate = this.trackNotificationDate.bind(this);
+        this.trackNotificationHour = this.trackNotificationHour.bind(this);
     }
 
-
+    //clean up these conditionals,looks bad.
     toggleEdit(pushChanges) {
-        if (this.state.inEditingMode && this.state.hasDeadline && this.state.hasDeadlineHour) {
-            this.setState({inEditingMode: false})
-        } else if (this.state.inEditingMode && (!this.state.hasDeadline || !this.state.hasDeadlineHour)) {
+
+        if (this.state.inEditingMode && (!this.state.hasDeadline || !this.state.hasDeadlineHour)) {
             alert("you have to enter both a deadline date and deadline hour!")
+            return
+        } else if (this.state.inEditingMode && ((this.state.notificationDate && !this.state.notificationHour) ||
+            (!this.state.notificationDate && this.state.notificationHour))) {
+            alert('you need to fill out both notification date and hour, or leave them both blank.')
+            return
+        }
+        else if (this.state.inEditingMode && this.state.hasDeadline && this.state.hasDeadlineHour) {
+            this.setState({inEditingMode: false})
         } else {
             this.setState({inEditingMode: true})
         }
@@ -634,7 +711,18 @@ class Item extends React.Component {
     }
 
     trackNotes(event) {
-        this.setState({note:event.target.value})
+        this.setState({note: event.target.value})
+    }
+
+    //to iso string maybe timezone naive, so maybe errors?
+    trackNotificationDate(day) {
+
+        this.setState({notificationDate: day.toISOString()})
+    }
+
+    trackNotificationHour(hour) {
+
+        this.setState({notificationHour: hour.format()})
     }
 
     render() {
@@ -642,13 +730,23 @@ class Item extends React.Component {
         let timeLeft = ''
         let deadlineHourPlaceHolder = 'pick an hour'
         let deadlineDatePlaceholder = 'pick a date'
-        let notes =''
+        let notes = ''
+        let notificationDatePlaceholder = 'pick a date'
+        let notificationHourPlaceholder = 'pick an hour'
+        let notificationDate = <p style={{color: '#FF652F'}} id='notes'><b> edit and pick a date and time to be notified
+            at</b></p>
+
+        if (this.state.notificationDate && this.state.notificationHour) {
+            notificationDate =
+                <p style={{color: '#FF652F'}}> {new Date(this.state.notificationDate).toLocaleDateString() + ' ' + moment(this.state.notificationHour).format(format)}</p>
+            notificationDatePlaceholder = new Date(this.state.notificationDate).toLocaleDateString()
+            notificationHourPlaceholder = moment(this.state.notificationHour).format(format)
+        }
 
         if (!this.state.note) {
-            notes = <p style={{color:'#FF652F'}} id='notes'> <b>edit to write notes.</b></p>
-        }
-        else{
-            notes = <p style={{color:'#FF652F'}} id='notes'> {this.state.note}</p>
+            notes = <p style={{color: '#FF652F'}} id='notes'><b>edit to write notes.</b></p>
+        } else {
+            notes = <p style={{color: '#FF652F'}} id='notes'> {this.state.note}</p>
         }
 
 
@@ -714,6 +812,7 @@ class Item extends React.Component {
                             </div>
                         </li>
                         <li>Notes:{notes} </li>
+                        <li>Notification Date: {notificationDate}</li>
                     </ul>
                 </div>
             )
@@ -723,8 +822,11 @@ class Item extends React.Component {
                 <div className="align itembox">
                     <h5> {this.props.taskName} </h5>
                     <ul>
-                        <li> deadline: <DayPickerInput placeholder={deadlineDatePlaceholder}
-                                                       onDayChange={day => this.trackDeadline(day)}/>
+                        <li> deadline:
+                            <DayPickerInput
+                                placeholder={deadlineDatePlaceholder}
+                                onDayChange={day => this.trackDeadline(day)}
+                            />
                             <TimePicker
                                 showSecond={false}
                                 placeholder={deadlineHourPlaceHolder}
@@ -736,7 +838,6 @@ class Item extends React.Component {
                             />
                         </li>
 
-
                         <li> progress: <input value={this.state.progress} onChange={this.trackProgress} type='range'/>
                             <div className="progress">
                                 <div className="progress-bar" role="progressbar"
@@ -745,7 +846,23 @@ class Item extends React.Component {
                                 </div>
                             </div>
                         </li>
-                        <li> notes: <textarea value={this.state.note} onChange={this.trackNotes} className='form-control' rows='4'> </textarea> </li>
+                        <li> notes: <textarea value={this.state.note} onChange={this.trackNotes}
+                                              className='form-control' rows='4'> </textarea></li>
+                        <li> set notication date:
+                            <DayPickerInput
+                                placeholder={notificationDatePlaceholder}
+                                onDayChange={day => this.trackNotificationDate(day)}
+                            />
+                            <TimePicker
+                                showSecond={false}
+                                placeholder={notificationHourPlaceholder}
+                                className="xxx"
+                                onChange={value => this.trackNotificationHour(value)}
+                                format={format}
+                                use12Hours
+                                inputReadOnly
+                            />
+                        </li>
                     </ul>
                     <button className="btn btn-success btn-sm" onClick={() => this.toggleEdit(true)}> save</button>
                 </div>
