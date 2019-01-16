@@ -130,6 +130,16 @@ class HomePage extends React.Component {
     }
 }
 
+class AllViews extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            whichView:'Overall'
+        }
+    }
+
+}
+
 class App extends React.Component {
     constructor(props) {
         super(props)
