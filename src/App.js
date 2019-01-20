@@ -50,30 +50,30 @@ class HomePage extends React.Component {
     }
 
     render() {
-        if (!this.state.schedule) {
-            return (
-                <div className='main'>
-                    <div className="jumbotron text main">
-                        <p className='jumbo-text'> Sign in</p>
-                        <div>
-                            <input onChange={this.trackUsername} value={this.state.username} placeholder='username'
-                                   required='true'/>
-                        </div>
-                        <div>
-                            <input type='password' onChange={this.trackPassword} value={this.state.password}
-                                   placeholder='password' required='true'/>
-                        </div>
-                        <br></br>
-                        <div>
-                            <button onClick={this.toggleUserSchedule} className="btn btn-success"> Sign in!</button>
-                        </div>
-                        <p style={{color: 'red'}}>{this.state.errorMessage}</p>
-                    </div>
-                </div>)
-        } else {
-            return <App username={this.state.username} password={this.state.password} schedule=
-                {this.state.schedule}/>
-        }
+        // if (!this.state.schedule) {
+        //     return (
+        //         <div className='main'>
+        //             <div className="jumbotron text main">
+        //                 <p className='jumbo-text'> Sign in</p>
+        //                 <div>
+        //                     <input onChange={this.trackUsername} value={this.state.username} placeholder='username'
+        //                            required='true'/>
+        //                 </div>
+        //                 <div>
+        //                     <input type='password' onChange={this.trackPassword} value={this.state.password}
+        //                            placeholder='password' required='true'/>
+        //                 </div>
+        //                 <br></br>
+        //                 <div>
+        //                     <button onClick={this.toggleUserSchedule} className="btn btn-success"> Sign in!</button>
+        //                 </div>
+        //                 <p style={{color: 'red'}}>{this.state.errorMessage}</p>
+        //             </div>
+        //         </div>)
+        // } else {
+        return <App username={''} password={''} schedule=
+            {'None'}/>
+        // }
 
     }
 
@@ -130,15 +130,6 @@ class HomePage extends React.Component {
     }
 }
 
-class AllViews extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            whichView:'Overall'
-        }
-    }
-
-}
 
 class App extends React.Component {
     constructor(props) {
@@ -158,7 +149,8 @@ class App extends React.Component {
                 hasChanged: false,
                 updateFail: false,
                 displayUpdateSuccess: false,
-                notificationMap: {}
+                notificationMap: {},
+                whichView: 'Overall'
             }
         } else {
             this.state = this.props.schedule
@@ -178,7 +170,17 @@ class App extends React.Component {
         this.pushDataHelper = this.pushDataHelper.bind(this);
         this.displayUpdateSuccess = this.displayUpdateSuccess.bind(this);
         this.cleanNotificationMap = this.cleanNotificationMap.bind(this);
+        this.switchViews = this.switchViews.bind(this)
 
+
+    }
+
+    switchViews() {
+        if (this.state.whichView === 'sorted') {
+            this.setState({whichView: 'Overall'})
+        } else {
+            this.setState({whichView: 'sorted'})
+        }
 
     }
 
@@ -196,7 +198,6 @@ class App extends React.Component {
     //     }
     //     return clone;
     // }
-
 
 
     cloneObject(obj) {
@@ -233,6 +234,7 @@ class App extends React.Component {
 
     }
 
+    //i am using state right after setting it, since its async it might be a problem, could use callback
     addTask(e, taskName) {
         // let potentialTask = this.state.potentialTask;
         if (taskName.length < 1) {
@@ -393,7 +395,7 @@ class App extends React.Component {
 
     cleanNotificationMap() {
         console.log("cleaning notification map")
-        console.log("b4",this.state.notificationMap)
+        console.log("b4", this.state.notificationMap)
         let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
         for (let task in copiedNotificationMap) {
             let date = copiedNotificationMap[task].date
@@ -408,7 +410,7 @@ class App extends React.Component {
         /*
         make sure that push data is only called after notificationmap is cleaned
          */
-        this.setState({notificationMap: copiedNotificationMap},()=>this.pushData())
+        this.setState({notificationMap: copiedNotificationMap}, () => this.pushData())
 
     }
 
@@ -427,7 +429,6 @@ class App extends React.Component {
      */
     displayUpdateSuccess() {
         if (!this.state.displayUpdateSuccess) {
-
             this.setState({updateFail: false, displayUpdateSuccess: true}, () => {
                 setTimeout(() => this.setState({displayUpdateSuccess: false}), 3000)
             })
@@ -437,12 +438,46 @@ class App extends React.Component {
     }
 
     render() {
-        console.log(this.state.categories)
-        // console.log('notifications', this.state.notificationMap)
-        // console.log('schedule',this.state.categories)
+        let viewSpecificContent = ''
         let hasChangedMessage = ''
         let updateFailedMessage = ''
         let updateSuccessMessage = ''
+        let sortedButtonText = ''
+        if (this.state.whichView === 'sorted') {
+            viewSpecificContent = <SortedView schedule={this.state.categories}
+                                              updateItemFunc={this.updateItem}
+                                              deleteTaskFunc={this.deleteTask}
+                                              markAsCompleteFunc={this.markAsComplete}
+                                              timezone = {this.state.timezone}/>
+            sortedButtonText = 'Switch to overall view'
+        } else {
+            sortedButtonText = 'Switch to sorted view'
+            viewSpecificContent =
+                <div>
+                    <div className="align text">
+                        <h2>Add to your schedule</h2>
+                        <input id="categoryInput" onChange={this.trackCategoryInput}
+                               value={this.state.potentialCategory}
+                               placeholder="add a category" type="text"/>
+                        <button onClick={this.addCategory} className="btn btn-success"> Add Category</button>
+                        <hr></hr>
+                        <br></br>
+                        <br></br>
+                    </div>
+                    <CategoryList trackTask={this.trackTaskInput}
+                                  deleteTaskFunc={this.deleteTask}
+                                  categories={this.state.categories}
+                                  addTaskFunc={this.addTask}
+                                  deleteCategoryFunc={this.deleteCategory}
+                                  updateItemFunc={this.updateItem}
+                                  timezone={this.state.timezone}
+                                  trackingTask={this.state.potentialTask}
+                                  markAsCompleteFunc={this.markAsComplete}
+
+                    />
+                </div>
+        }
+
         if (this.state.hasChanged) {
             hasChangedMessage =
                 <p style={{color: 'red'}}> Your schedule has changed since loading, make sure to save before
@@ -473,37 +508,92 @@ class App extends React.Component {
                         {updateFailedMessage}
                         {updateSuccessMessage}
                     </div>
-
-
                 </div>
-
-
-                <div className="align text">
-                    <h2>Add to your schedule</h2>
-                    <input id="categoryInput" onChange={this.trackCategoryInput} value={this.state.potentialCategory}
-                           placeholder="add a category" type="text"/>
-                    <button onClick={this.addCategory} className="btn btn-success"> Add Category</button>
-
-
-                    <hr></hr>
-                    <br></br>
-                    <br></br>
-
+                <div className="align">
+                    <button className="btn btn-info" onClick={this.switchViews}> {sortedButtonText}</button>
                 </div>
-                <CategoryList trackTask={this.trackTaskInput}
-                              deleteTaskFunc={this.deleteTask}
-                              categories={this.state.categories}
-                              addTaskFunc={this.addTask}
-                              deleteCategoryFunc={this.deleteCategory}
-                              updateItemFunc={this.updateItem}
-                              timezone={this.state.timezone}
-                              trackingTask={this.state.potentialTask}
-                              markAsCompleteFunc={this.markAsComplete}
-
-                />
+                {viewSpecificContent}
             </div>
         )
     }
+}
+
+class SortedView extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            schedule: this.props.schedule,
+            keyCount: this.props.keyCount
+        }
+
+
+        this.compareDates = this.compareDates.bind(this);
+        this.sortTask = this.sortTask.bind(this);
+    }
+
+    componentWillMount() {
+        this.sortTask()
+    }
+
+
+    compareDates(task1, task2) {
+        //if task1 doesn't have a deadline but task2 does, put task2 before task1
+        if (!task1.deadline && task2.deadline) {
+            return 1
+        }
+
+        if (task1.deadline && !task2.deadline) {
+            return -1
+        }
+        let task1Date = combineDate(new Date(task1.deadline), moment(task1.deadlineHour))
+        let task2Date = combineDate(new Date(task2.deadline), moment(task2.deadlineHour))
+        return task1Date.valueOf() - task2Date.valueOf()
+
+
+    }
+
+    sortTask() {
+        let copiedTaskList = []
+        for (let category in this.props.schedule) {
+            let tasklist = this.props.schedule[category]
+            for (let task in tasklist) {
+                let copiedTask = tasklist[task]
+                copiedTask['name'] = task
+                copiedTask['category'] = category
+                copiedTaskList.push(copiedTask)
+            }
+        }
+
+        copiedTaskList.sort(this.compareDates)
+        return copiedTaskList
+    }
+
+    render() {
+        let copiedTaskList = this.sortTask()
+        return (
+
+            <div className='align'>
+                <br/>
+                {copiedTaskList.map((task) =>
+                    <div className='text'>
+                        <Item category={task['category']}
+                              deleteTaskFunc={this.props.deleteTaskFunc}
+                              taskName={task['name']}
+                              task={task}
+                              updateItemFunc={this.props.updateItemFunc}
+                              key={task['key']}
+                              id={task['key']}
+                              timezone={this.props.timezone}
+                              trackingTask={this.props.trackingTask}
+                              markAsCompleteFunc={this.props.markAsCompleteFunc}
+                        />
+                    </div>
+                )}
+            </div>)
+
+
+    }
+
 }
 
 
@@ -674,6 +764,10 @@ class Item extends React.Component {
         this.trackNotificationHour = this.trackNotificationHour.bind(this);
     }
 
+    componentWillUnmount() {
+        console.log("item unmounted!")
+    }
+
     //clean up these conditionals,looks bad.
     toggleEdit(pushChanges) {
 
@@ -684,8 +778,7 @@ class Item extends React.Component {
             (!this.state.notificationDate && this.state.notificationHour))) {
             alert('you need to fill out both notification date and hour, or leave them both blank.')
             return
-        }
-        else if (this.state.inEditingMode && this.state.hasDeadline && this.state.hasDeadlineHour) {
+        } else if (this.state.inEditingMode && this.state.hasDeadline && this.state.hasDeadlineHour) {
             this.setState({inEditingMode: false})
         } else {
             this.setState({inEditingMode: true})
@@ -736,6 +829,7 @@ class Item extends React.Component {
     }
 
     render() {
+        console.log("item key",this.props.id)
         let deadline = ''
         let timeLeft = ''
         let deadlineHourPlaceHolder = 'pick an hour'
