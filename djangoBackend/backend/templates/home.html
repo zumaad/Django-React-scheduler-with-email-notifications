@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        {% load static %}
+        <meta name="viewport"
+              content="width=device-width, initial-scale=.5, maximum-scale=12.0, minimum-scale=.25, user-scalable=yes"/>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
+              integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"
+              crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/siema@1.5.1/dist/siema.min.js"></script>
+        <title>Scheduler</title>
+    </head>
+    <body style="background: #272727;color: #14A76C">
+
+
+        <style>
+            .center-image {
+                text-align: center;
+            }
+
+            .jumbotron {
+                color: #14A76C;
+                background: #17171d;
+                border: #14A76C solid;
+            }
+
+
+        </style>
+        <div id="signUp" style="text-align: center">
+            <div class="jumbotron">
+                <h1> Online Personal Scheduler</h1>
+                <p> Sign up</p>
+                <form method="post" action="/">
+                    <div>
+                        <input style="background-color: #f2f2d2" class="form-control" type="text" name="username" placeholder="username" required>
+                    </div>
+                    <div>
+                        <input style="background-color: #f2f2d2" class="form-control" type="password" name="password" placeholder="password" required>
+                    </div>
+                    <div>
+                        <input style="background-color: #f2f2d2" class="form-control" type="text" name="email" placeholder="optional email for reminders">
+                    </div>
+                    <br>
+                    <div>
+                        <button class="btn btn-success"> create account</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+                <p style="color: red"> <b>{{ error_message }}</b></p>
+                <br>
+                <p> Already have an account?</p>
+                <div style="text-align:center;margin-top: 0px;">
+                    <a href="{% url 'sign_in' %}" class="btn-sm btn-primary"> Click here</a>
+                </div>
+            </div>
+
+
+
+            <p style="font-size: 4em;font-weight: bold;text-align: center"><b> Features </b></p>
+        </div>
+
+        <div class="center-image">
+            <button class="prev btn-lg">Prev</button>
+            <button class="next btn-lg">Next</button>
+        </div>
+        <br>
+        <div class="siema">
+            <div class="center-image">
+                <p> <b> Organize your work into a hierarchy of categories and tasks</b></p>
+                <img src="{% static 'backend/demo5.png' %}" alt="Siema image"/>
+            </div>
+            <div class="center-image">
+                <p> <b> Add a category to represent a group of tasks </b></p>
+                <img src="{% static 'backend/addingCategory.gif' %}" alt="Siema image"/>
+            </div>
+            <div class="center-image">
+                <p> <b>Add a task to be completed</b> </p>
+                <img src="{% static 'backend/addtask.gif' %}" alt="Siema image"/>
+            </div>
+            <div class="center-image">
+                <p><b>Edit tasks to add deadlines and document your progress</b></p>
+                <img src="{% static 'backend/editTask.gif' %}">
+            </div>
+            <div class="center-image">
+                <p> <b>Delete or complete tasks to clear your schedule</b> </p>
+                <img src="{% static 'backend/clearingStuff.gif' %}">
+            </div>
+            <div class="center-image">
+                <p> <b>Keep track of how many tasks you have completed</b></p>
+                <img src="{% static 'backend/completingTasks2.gif' %}">
+            </div>
+        </div>
+
+
+        <script>
+            const mySiema = new Siema();
+            const prev = document.querySelector('.prev');
+            const next = document.querySelector('.next');
+
+            prev.addEventListener('click', () => mySiema.prev());
+            next.addEventListener('click', () => mySiema.next());
+        </script>
+    </body>
+</html>
