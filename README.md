@@ -3,4 +3,4 @@ Django/React scheduler with email notifications
 
 # Demo
 
-schedulingfor.me
+http://schedulingfor.me
