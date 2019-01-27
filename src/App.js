@@ -7,6 +7,7 @@ import './App.css';
 
 let moment = require('moment-timezone');
 let jQuery = require('jquery')
+let backend_url = 'http://schedulingfor.me/'
 
 function getCookie(name) {
     var cookieValue = null;
@@ -31,6 +32,7 @@ function combineDate(dateObj, hoursObj) {
     return newDeadlineDate
 }
 
+
 class HomePage extends React.Component {
     constructor(props) {
         super(props);
@@ -50,30 +52,30 @@ class HomePage extends React.Component {
     }
 
     render() {
-        // if (!this.state.schedule) {
-        //     return (
-        //         <div className='main'>
-        //             <div className="jumbotron text main">
-        //                 <p className='jumbo-text'> Sign in</p>
-        //                 <div>
-        //                     <input onChange={this.trackUsername} value={this.state.username} placeholder='username'
-        //                            required='true'/>
-        //                 </div>
-        //                 <div>
-        //                     <input type='password' onChange={this.trackPassword} value={this.state.password}
-        //                            placeholder='password' required='true'/>
-        //                 </div>
-        //                 <br></br>
-        //                 <div>
-        //                     <button onClick={this.toggleUserSchedule} className="btn btn-success"> Sign in!</button>
-        //                 </div>
-        //                 <p style={{color: 'red'}}>{this.state.errorMessage}</p>
-        //             </div>
-        //         </div>)
-        // } else {
-        return <App username={''} password={''} schedule=
-            {'None'}/>
-        // }
+        if (!this.state.schedule) {
+            return (
+                <div className='main'>
+                    <div className="jumbotron text main">
+                        <p className='jumbo-text'> Sign in</p>
+                        <div>
+                            <input onChange={this.trackUsername} value={this.state.username} placeholder='username'
+                                   required='true'/>
+                        </div>
+                        <div>
+                            <input type='password' onChange={this.trackPassword} value={this.state.password}
+                                   placeholder='password' required='true'/>
+                        </div>
+                        <br></br>
+                        <div>
+                            <button onClick={this.toggleUserSchedule} className="btn btn-success"> Sign in!</button>
+                        </div>
+                        <p style={{color: 'red'}}>{this.state.errorMessage}</p>
+                    </div>
+                </div>)
+        } else {
+        return <App username={this.state.username} password={this.state.password} schedule=
+            {this.state.schedule}/>
+        }
 
     }
 
@@ -83,7 +85,7 @@ class HomePage extends React.Component {
             password: this.state.password
         }
 
-        fetch("http://127.0.0.1:8000/signIn/", {
+        fetch(backend_url+'signIn/', {
             method: "post",
             credentials: "same-origin",
             headers: {
@@ -159,7 +161,7 @@ class App extends React.Component {
 
         this.trackCategoryInput = this.trackCategoryInput.bind(this);
         this.addCategory = this.addCategory.bind(this);
-        this.cloneObject = this.cloneObject.bind(this);
+        this.recursiveDeepClone= this.recursiveDeepClone.bind(this);
         this.addTask = this.addTask.bind(this);
         this.deleteTask = this.deleteTask.bind(this);
         this.deleteCategory = this.deleteCategory.bind(this);
@@ -184,31 +186,18 @@ class App extends React.Component {
 
     }
 
-    // cloneObject(obj) {
-    //     let clone = {};
-    //     for (let i in obj) {
-    //         if (obj[i] != null && typeof (obj[i]) == "object" && !(obj[i].constructor.name == 'Date' || obj[i].constructor.name == 'Moment'))
-    //             clone[i] = this.cloneObject(obj[i]);
-    //         else if (obj[i].constructor.name == 'Date') {
-    //             clone[i] = new Date(obj[i].getTime())
-    //         } else if (obj[i].constructor.name == 'Moment') {
-    //             clone[i] = obj[i].clone()
-    //         } else
-    //             clone[i] = obj[i];
-    //     }
-    //     return clone;
-    // }
 
 
-    cloneObject(obj) {
-        let clone = {};
+
+    recursiveDeepClone(obj) {
+        let deepClone = {};
         for (let i in obj) {
             if (obj[i] != null && typeof (obj[i]) == "object")
-                clone[i] = this.cloneObject(obj[i]);
+                deepClone[i] = this.recursiveDeepClone(obj[i]);
             else
-                clone[i] = obj[i];
+                deepClone[i] = obj[i];
         }
-        return clone;
+        return deepClone;
     }
 
     trackCategoryInput(e) {
@@ -217,7 +206,7 @@ class App extends React.Component {
 
     addCategory() {
         if (this.state.potentialCategory.length > 0) {
-            let copiedState = this.cloneObject(this.state);
+            let copiedState = this.recursiveDeepClone(this.state);
 
 
             copiedState.categories[copiedState.potentialCategory] = {};
@@ -246,7 +235,7 @@ class App extends React.Component {
         }))
 
         let categoryToAddTo = e.target.value
-        let copiedState = this.cloneObject(this.state);
+        let copiedState = this.recursiveDeepClone(this.state);
         copiedState.categories[categoryToAddTo][taskName] = {
             hasDeadline: false,
             hasDeadlineHour: false,
@@ -271,12 +260,12 @@ class App extends React.Component {
     deleteTask(nameAndCategory) {
         let category = nameAndCategory.category;
         let taskName = nameAndCategory.name;
-        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        let copiedNotificationMap = this.recursiveDeepClone(this.state.notificationMap)
         if (taskName in copiedNotificationMap) {
             delete copiedNotificationMap[taskName]
         }
 
-        let copiedCategories = this.cloneObject(this.state.categories);
+        let copiedCategories = this.recursiveDeepClone(this.state.categories);
         delete copiedCategories[category][taskName];
 
         this.setState(state => ({
@@ -289,8 +278,8 @@ class App extends React.Component {
 
     deleteCategory(e) {
         let categoryName = e.target.value;
-        let copiedCategories = this.cloneObject(this.state.categories);
-        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        let copiedCategories = this.recursiveDeepClone(this.state.categories);
+        let copiedNotificationMap = this.recursiveDeepClone(this.state.notificationMap)
         for (let task in copiedCategories[categoryName]) {
             if (task in copiedNotificationMap) {
                 delete copiedNotificationMap[task]
@@ -308,7 +297,7 @@ class App extends React.Component {
     }
 
     updateItem(itemState) {
-        let copiedCategories = this.cloneObject(this.state.categories);
+        let copiedCategories = this.recursiveDeepClone(this.state.categories);
         let itemName = itemState.name
         let itemCategory = itemState.category;
         let newDeadline = itemState.deadline;
@@ -320,7 +309,7 @@ class App extends React.Component {
         let itemNotes = itemState.note
         let notificationDate = itemState.notificationDate;
         let notificationHour = itemState.notificationHour;
-        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        let copiedNotificationMap = this.recursiveDeepClone(this.state.notificationMap)
 
 
         if (notificationDate && notificationHour) {
@@ -359,7 +348,7 @@ class App extends React.Component {
         let category = nameAndCategory.category;
         let taskName = nameAndCategory.name;
 
-        let copiedCategories = this.cloneObject(this.state.categories);
+        let copiedCategories = this.recursiveDeepClone(this.state.categories);
         delete copiedCategories[category][taskName];
 
         this.setState(state => ({
@@ -371,7 +360,7 @@ class App extends React.Component {
 
     pushData() {
         let userData = {schedule: this.state, username: this.props.username, password: this.props.password}
-        fetch("http://127.0.0.1:8000/update/", {
+        fetch(backend_url+'update/', {
             method: "post",
             credentials: "same-origin",
             headers: {
@@ -396,7 +385,7 @@ class App extends React.Component {
     cleanNotificationMap() {
         console.log("cleaning notification map")
         console.log("b4", this.state.notificationMap)
-        let copiedNotificationMap = this.cloneObject(this.state.notificationMap)
+        let copiedNotificationMap = this.recursiveDeepClone(this.state.notificationMap)
         for (let task in copiedNotificationMap) {
             let date = copiedNotificationMap[task].date
             let hour = copiedNotificationMap[task].hour
@@ -758,7 +747,6 @@ class Item extends React.Component {
         this.trackDeadline = this.trackDeadline.bind(this);
         this.trackProgress = this.trackProgress.bind(this);
         this.trackDeadlineHour = this.trackDeadlineHour.bind(this);
-        this.combineDate = this.combineDate.bind(this);
         this.trackNotes = this.trackNotes.bind(this);
         this.trackNotificationDate = this.trackNotificationDate.bind(this);
         this.trackNotificationHour = this.trackNotificationHour.bind(this);
@@ -805,13 +793,7 @@ class Item extends React.Component {
         this.setState({hasDeadlineHour: true})
     }
 
-    combineDate(dateObj, hoursObj) {
-        let combinedDate = new Date(dateObj.toLocaleDateString())
-        combinedDate.setHours(hoursObj.hours())
-        combinedDate.setMinutes(hoursObj.minutes())
-        let newDeadlineDate = moment(combinedDate);
-        return newDeadlineDate
-    }
+
 
     trackNotes(event) {
         this.setState({note: event.target.value})
@@ -861,7 +843,7 @@ class Item extends React.Component {
             deadlineHourPlaceHolder = moment(this.state.deadlineHour).format(format)
 
             let currentTime = moment.tz(this.props.timezone)
-            let fullDeadlineDate = this.combineDate(new Date(this.state.deadline), moment(this.state.deadlineHour)).tz(this.props.timezone)
+            let fullDeadlineDate = combineDate(new Date(this.state.deadline), moment(this.state.deadlineHour)).tz(this.props.timezone)
 
             timeLeft = <TimeLeftTimer
                 timezone={this.props.timezone}
