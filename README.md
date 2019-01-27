@@ -19,7 +19,7 @@ http://schedulingfor.me
 ![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/addingCategory.gif)
 
 ### Edit tasks to set deadlines,notifications,notes, and track progress
-![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/EditingTasksGif.gif)
+![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/editingTasksGif.gif)
 
 ### Mark tasks as complete
 
