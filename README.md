@@ -13,6 +13,7 @@ http://schedulingfor.me
 # Features
 
 ### Create a heirarchy of categories and tasks
+![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/overallView.png)
 
 ### Add categories
 ![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/addingCategory.gif)
