@@ -15,7 +15,7 @@ http://schedulingfor.me
 ### Create a heirarchy of categories and tasks
 
 ### Add categories
-![alt text](https://raw.githubusercontent.com/username/projectname/branch/path/to/img.png)
+![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/addingCategory.gif)
 
 ### Edit tasks to set deadlines,notifications,notes, and track progress
 
