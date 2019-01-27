@@ -12,5 +12,15 @@ http://schedulingfor.me
 
 # Features
 
+### Create a heirarchy of categories and tasks
+
+### Edit tasks to set deadlines,notifications,notes, and track progress
+
+### Mark tasks as complete
+
+### Delete tasks and Categories
+
+###
+
 
 
