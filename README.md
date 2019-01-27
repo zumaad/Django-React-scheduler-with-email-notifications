@@ -21,11 +21,10 @@ http://schedulingfor.me
 ### Edit tasks to set deadlines,notifications,notes, and track progress
 ![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/editingTasksGif.gif)
 
-### Mark tasks as complete
+### Mark tasks/categories as complete or delete to clear your schedule
+![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/completingTasks.gif)
 
-### Delete tasks and Categories
 
-###
 
 
 
