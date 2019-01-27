@@ -11,9 +11,9 @@ from hidden import db_host,db_pass,db_user,schema_name,sender_email,password
 timezone = 'America/New_York'
 
 # Quick summary: I connect to the mySQL db where the notification maps are stored after the 
-#user indicates when they want to be notified. After I connect, i retrieve it, parse the dates
-# and send the notifications when the time is greater than the parsed time. Then, i clean
-#the notification map of already sent emails and save it in the db to ensure I wont send the same
+#user indicates when they want to be notified. After I connect, I retrieve it, parse the dates
+# and send the notifications when the time is greater than the parsed time. Then, I clean
+#the notification map of already sent emails and save it in the db to ensure I won't send the same
 #emails again.
 
 #given a notification_map and a task_name, it deletes the notification entry from
