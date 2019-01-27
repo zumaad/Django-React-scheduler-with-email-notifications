@@ -24,6 +24,8 @@ http://schedulingfor.me
 ### Mark tasks/categories as complete or delete to clear your schedule
 ![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/completingTasks.gif)
 
+### Sort tasks based on deadline date
+
 
 
 
