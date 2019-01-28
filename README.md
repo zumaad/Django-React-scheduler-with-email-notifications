@@ -25,6 +25,7 @@ http://schedulingfor.me
 ![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/completingTasks.gif)
 
 ### Sort tasks based on deadline date
+![alt text](https://github.com/zumaad/SchedulingFor.me/blob/master/demoGifsPics/sortedView.gif)
 
 
 
