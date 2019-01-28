@@ -1,6 +1,6 @@
 
-# Django-React-scheduler-with-email-notifications
-Django/React scheduler with email notifications
+# SchedulingFor.me
+Django/React scheduler
 
 # Demo
 http://schedulingfor.me
