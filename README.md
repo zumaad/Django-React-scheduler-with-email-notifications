@@ -6,7 +6,7 @@ Django/React scheduler with email notifications
 http://schedulingfor.me
 
 # Features
-- Save you schedule by creating an account
+- Save your schedule by creating an account
 - Create a heirarchy of categories and tasks
 - Add categories and tasks to complete
 - Edit tasks to set deadlines,notifications,notes, and track progress
